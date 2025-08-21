@@ -5,17 +5,21 @@ import numpy as np
 from PIL import Image
 from keras.models import load_model
 
+#Load in both CNN models
 cashcardmodel = load_model('cardorcash.keras')
 handwritingmodel = load_model('handwritingNN.keras')
 
+#Define area for taking picture of cash/card
 Screenshot1 = (1170, 580, 125, 100)
 
+#Function to move the mouse and click at a specific (x,y) coordinate
 def moveTo(x, y):
     pyautogui.moveTo(x, y)
     time.sleep(0.15)
     directInput.moveTo(x+1, y)
     directInput.click()
 
+#Takes picture of specified region and saves to a PNG file
 def take_screenshot(region, filename):
     screenshot = pyautogui.screenshot(region=region)
     filename = str(filename) + ".png"
@@ -23,23 +27,23 @@ def take_screenshot(region, filename):
     img = screenshot.convert('RGB')
     return np.array(img.resize((100, 125)), dtype='float32')
 
-#First Item
+#Move to First Item in checkout
 time.sleep(1)
 moveTo(1400, 790)
 
-#Scan Items
+#Scan Items by clicking rapidly
 for i in range(5):
     pyautogui.click()
     time.sleep(0.3)
 
-#Move to Cash/Card
+#Move to Cash/Card area
 moveTo(1230, 660)
 
 #Take screenshot of cash/card
 img_array = take_screenshot(Screenshot1, "cashorcard")
 img_array = np.expand_dims(img_array, axis=0)
 
-#Get prediction
+#Get prediction from CNN model
 prediction = cashcardmodel.predict(img_array)
 print(prediction)
 cashorcard = ""
@@ -72,16 +76,14 @@ for coordinates, name in regions:
     index = np.argmax(prediction)
     print(name, "prediction:", index)
     #Build total
-    if(index == 10): #dollar sign:
+    if(index == 10): #dollar sign
         total += "0"
     else:
         total += str(index)
     if(name == "onesdigit"):
         total += "."
-#Convert total to a float
-print("total:", total)
+
 total = float(total)
-print("total:", total)
 
 #Dispense change
 if cashorcard == "cash":
@@ -139,22 +141,3 @@ elif cashorcard == "card":
 time.sleep(1)
 moveTo(1462, 937) #Hit the okay button
 time.sleep(3)
-
-
-
-'''
-#Screen Width, Height: 1920 1080
-time.sleep(2)
-
-#2 row: 849 395
-#1 row: 852 425
-currentMouseX, currentMouseY = pyautogui.position()
-print(currentMouseX, currentMouseY)
-
-pyautogui.moveTo(852, 425)
-time.sleep(2)
-for x in range(305):
-    pyautogui.click()
-    time.sleep(0.5)
-
-'''
