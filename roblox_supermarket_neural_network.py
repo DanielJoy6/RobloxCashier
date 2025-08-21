@@ -19,10 +19,14 @@ from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping
 import zipfile
 
+#Extract all files from zip file
 with zipfile.ZipFile('/content/Images.zip', 'r') as zip_ref:
         zip_ref.extractall('/content/')
+#set up file arrays
 y = []
 x = []
+
+#Loop through files, encode based on if cash or card, then resize
 for filename in os.listdir('Images'):
     if("card" in filename):
         y.append(0)
@@ -37,12 +41,12 @@ for filename in os.listdir('Images'):
 x =  np.array(x)
 y = np.array(y, dtype=np.int32)
 
-print(x.shape)
-print(y.shape)
-print("Ys:", y)
 print(f'Loaded {len(x)} images.')
+
+#Make in format that CNN understands
 y = to_categorical(y, num_classes=2)
 
+#Define CNN model
 model = Sequential([
     Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(125, 100, 3)),
     MaxPooling2D(pool_size=(2, 2)),
@@ -57,9 +61,12 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_wei
 model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
+
 # Train the model
 history = model.fit(x, y, epochs=20, batch_size=len(x), callbacks=[], verbose=1)
-plt.plot(history.history['loss'], label='Training Loss', color='blue')
+
+#Optional plots if you'd like to look at loss & accuracy over time
+'''plt.plot(history.history['loss'], label='Training Loss', color='blue')
 #plt.plot(history.history['val_loss'], label='Validation Loss', color='orange')
 plt.legend()
 plt.title("Loss")
@@ -70,13 +77,18 @@ plt.plot(history.history['accuracy'], label='Training Accuracy', color='blue')
 plt.legend()
 plt.title("Accuracy")
 plt.show()
+'''
 
+#Save as .keras file for portability
 model.save('cardorcash.keras')
 
+
+#Redo the same thing with digit recognition. Extract all files from zip
 with zipfile.ZipFile('/content/Images2.zip', 'r') as zip_ref:
         zip_ref.extractall('/content/')
 y = []
 x = []
+#Loop through files and apply labels
 for filename in os.listdir('Images2'):
     if("zero" in filename):
         y.append(0)
@@ -101,6 +113,7 @@ for filename in os.listdir('Images2'):
     elif "dollar" in filename:
         y.append(10)
     image_path = os.path.join('Images2', filename)
+    #Prepare files for neural network by converting and resizing
     with Image.open(image_path) as img:
         img = img.convert('RGB')
         img = img.resize((100, 125))
@@ -109,13 +122,11 @@ for filename in os.listdir('Images2'):
 x =  np.array(x)
 y = np.array(y, dtype=np.int32)
 
-print(x.shape)
-print(y.shape)
-print("Ys:", y)
+
 print(f'Loaded {len(x)} images.')
 y = to_categorical(y, num_classes=11)
-print("Ys:", y)
 
+#Define CNN model
 model = Sequential([
     Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(125, 100, 3)),
     MaxPooling2D(pool_size=(2, 2)),
@@ -130,9 +141,11 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=20, restore_best_wei
 model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
+
 # Train the model
 history = model.fit(x, y, epochs=20, batch_size=len(x), callbacks=[], verbose=1)
-plt.plot(history.history['loss'], label='Training Loss', color='blue')
+#Optional plots to view loss & accuracy over time
+'''plt.plot(history.history['loss'], label='Training Loss', color='blue')
 plt.legend()
 plt.title("Loss")
 plt.show()
@@ -140,6 +153,7 @@ plt.show()
 plt.plot(history.history['accuracy'], label='Training Accuracy', color='blue')
 plt.legend()
 plt.title("Accuracy")
-plt.show()
+plt.show()'''
 
+#Save finalized model
 model.save('handwritingNN.keras')
